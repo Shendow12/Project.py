@@ -4,9 +4,9 @@ import os
 
 # --- Configurare ---
 # !!! MODIFICĂ ACEASTĂ LINIE !!!
-FOLDER_PATH = "C:/Users/tbogh/Pictures/Saved Pictures/imagine"
+FOLDER_PATH = "C:/Users/tbogh/Pictures/Saved Pictures/imagine" 
 
-# --- ADAUGAT: Dimensiuni maxime pentru afișare ---
+# --- Dimensiuni maxime pentru afișare ---
 MAX_WIDTH = 800
 MAX_HEIGHT = 600
 
@@ -15,7 +15,7 @@ first_image_path = None
 if os.path.isdir(FOLDER_PATH):
     all_files = os.listdir(FOLDER_PATH)
     for filename in all_files:
-        if filename.lower().endswith(('.jpg', '.jpeg')):
+        if filename.lower().endswith(('.jpg', '.jpeg', '.png')): # Am adaugat si .png
             first_image_path = os.path.join(FOLDER_PATH, filename)
             break
 else:
@@ -23,31 +23,45 @@ else:
 
 # --- Crearea Ferestrei Principale ---
 root = tk.Tk()
-root.title("Milestone 1: Image Viewer (Cu Redimensionare)")
+root.title("Milestone 2: The Click Catcher")
+
+# --- NOU: Funcția care gestionează click-ul ---
+def on_image_click(event):
+    """Această funcție este apelată la fiecare click pe canvas."""
+    print("Clicked")
 
 # --- Încărcarea și Afișarea Imaginii ---
 if first_image_path and first_image_path != "path_not_found":
     try:
         pil_image = Image.open(first_image_path)
 
-        # --- NOU: Logica de redimensionare a imaginii ---
+        # --- Logica de redimensionare a imaginii (rămâne la fel) ---
         original_width, original_height = pil_image.size
-        
-        # Calculăm raportul de aspect pentru a păstra proporțiile
         ratio = min(MAX_WIDTH / original_width, MAX_HEIGHT / original_height)
         
-        # Redimensionăm imaginea doar dacă este mai mare decât limitele maxime
+        # Redimensionăm imaginea
+        new_width = original_width
+        new_height = original_height
         if ratio < 1:
             new_width = int(original_width * ratio)
             new_height = int(original_height * ratio)
-            # Folosim Image.Resampling.LANCZOS pentru o calitate bună la micșorare
             pil_image = pil_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        # --- Sfârșitul secțiunii noi ---
 
         photo_image = ImageTk.PhotoImage(pil_image)
-        image_label = tk.Label(root, image=photo_image)
-        image_label.image = photo_image
-        image_label.pack(padx=10, pady=10)
+
+        # --- MODIFICAT: Folosim Canvas în loc de Label ---
+        canvas = tk.Canvas(root, width=new_width, height=new_height)
+        canvas.pack(padx=10, pady=10)
+        
+        # Desenăm imaginea pe canvas
+        canvas.create_image(0, 0, anchor=tk.NW, image=photo_image)
+        
+        # Păstrăm o referință la imagine pentru a nu fi ștearsă de garbage collector
+        canvas.image = photo_image 
+
+        # --- NOU: Legăm evenimentul de click de funcția noastră ---
+        # '<Button-1>' reprezintă click-ul stânga al mouse-ului.
+        canvas.bind("<Button-1>", on_image_click)
         
     except Exception as e:
         error_label = tk.Label(root, text=f"Eroare la deschiderea imaginii:\n{e}")
@@ -56,7 +70,7 @@ elif first_image_path == "path_not_found":
     error_label = tk.Label(root, text=f"Eroare: Folderul specificat nu există:\n{FOLDER_PATH}")
     error_label.pack(padx=20, pady=20)
 else:
-    error_label = tk.Label(root, text=f"Nu am găsit nicio imagine JPG în folderul:\n{FOLDER_PATH}")
+    error_label = tk.Label(root, text=f"Nu am găsit nicio imagine JPG/PNG în folderul:\n{FOLDER_PATH}")
     error_label.pack(padx=20, pady=20)
 
 # --- Pornirea Aplicației ---
