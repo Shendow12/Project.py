@@ -10,7 +10,7 @@ FOLDER_PATH = "C:/Users/tbogh/Pictures/Saved Pictures/imagine"
 MAX_WIDTH = 800
 MAX_HEIGHT = 600
 
-# --- NOU: Lista pentru a stoca coordonatele ---
+# --- Lista pentru a stoca coordonatele ---
 coordinates_list = []
 
 # --- Găsirea Primei Imagini JPG ---
@@ -26,27 +26,39 @@ else:
 
 # --- Crearea Ferestrei Principale ---
 root = tk.Tk()
-root.title("Milestone 3: The Coordinate Logger")
+root.title("Milestone 4: The Data Exporter")
 
-# --- MODIFICAT: Funcția care gestionează click-ul ---
+# --- Funcția care gestionează click-ul ---
 def on_image_click(event):
     """Această funcție este apelată la fiecare click pe canvas."""
-    # Extragem coordonatele x si y din obiectul event
     x, y = event.x, event.y
-    
-    # Adăugăm coordonatele ca tuplu în lista noastră
     coordinates_list.append((x, y))
-    
-    # Afișăm în consolă pentru verificare
     print(f"Clicked at: ({x}, {y})")
     print("Current list of coordinates:", coordinates_list)
+
+# --- NOU: Funcția pentru salvare ---
+def save_coordinates(event):
+    """Salvează coordonatele din listă în fișierul output.txt."""
+    # Definim numele fișierului de ieșire
+    filename = "output.txt"
+    try:
+        # Folosim 'with' pentru a garanta închiderea fișierului
+        with open(filename, "w") as f:
+            print(f"Saving {len(coordinates_list)} coordinates to {filename}...")
+            # Parcurgem lista de coordonate
+            for coord in coordinates_list:
+                # Scriem fiecare pereche de coordonate pe o linie nouă, separate prin virgulă
+                f.write(f"{coord[0]},{coord[1]}\n")
+        print("Coordinates saved successfully!")
+    except Exception as e:
+        print(f"Error saving file: {e}")
+
 
 # --- Încărcarea și Afișarea Imaginii ---
 if first_image_path and first_image_path != "path_not_found":
     try:
         pil_image = Image.open(first_image_path)
 
-        # --- Logica de redimensionare a imaginii (rămâne la fel) ---
         original_width, original_height = pil_image.size
         ratio = min(MAX_WIDTH / original_width, MAX_HEIGHT / original_height)
         
@@ -59,17 +71,20 @@ if first_image_path and first_image_path != "path_not_found":
 
         photo_image = ImageTk.PhotoImage(pil_image)
 
-        # --- Folosim Canvas în loc de Label (rămâne la fel) ---
         canvas = tk.Canvas(root, width=new_width, height=new_height)
         canvas.pack(padx=10, pady=10)
         
         canvas.create_image(0, 0, anchor=tk.NW, image=photo_image)
         
-        canvas.image = photo_image 
+        canvas.image = photo_image
 
-        # --- Legăm evenimentul de click de funcția noastră (rămâne la fel) ---
+        # Legăm evenimentul de click de funcția noastră
         canvas.bind("<Button-1>", on_image_click)
         
+        # --- NOU: Legăm tasta 's' de funcția de salvare ---
+        # Facem bind pe 'root' pentru a prinde tasta indiferent de focus
+        root.bind("<s>", save_coordinates)
+
     except Exception as e:
         error_label = tk.Label(root, text=f"Eroare la deschiderea imaginii:\n{e}")
         error_label.pack(padx=20, pady=20)
