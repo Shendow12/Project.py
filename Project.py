@@ -10,12 +10,15 @@ FOLDER_PATH = "C:/Users/tbogh/Pictures/Saved Pictures/imagine"
 MAX_WIDTH = 800
 MAX_HEIGHT = 600
 
+# --- NOU: Lista pentru a stoca coordonatele ---
+coordinates_list = []
+
 # --- Găsirea Primei Imagini JPG ---
 first_image_path = None
 if os.path.isdir(FOLDER_PATH):
     all_files = os.listdir(FOLDER_PATH)
     for filename in all_files:
-        if filename.lower().endswith(('.jpg', '.jpeg', '.png')): # Am adaugat si .png
+        if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
             first_image_path = os.path.join(FOLDER_PATH, filename)
             break
 else:
@@ -23,12 +26,20 @@ else:
 
 # --- Crearea Ferestrei Principale ---
 root = tk.Tk()
-root.title("Milestone 2: The Click Catcher")
+root.title("Milestone 3: The Coordinate Logger")
 
-# --- NOU: Funcția care gestionează click-ul ---
+# --- MODIFICAT: Funcția care gestionează click-ul ---
 def on_image_click(event):
     """Această funcție este apelată la fiecare click pe canvas."""
-    print("Clicked")
+    # Extragem coordonatele x si y din obiectul event
+    x, y = event.x, event.y
+    
+    # Adăugăm coordonatele ca tuplu în lista noastră
+    coordinates_list.append((x, y))
+    
+    # Afișăm în consolă pentru verificare
+    print(f"Clicked at: ({x}, {y})")
+    print("Current list of coordinates:", coordinates_list)
 
 # --- Încărcarea și Afișarea Imaginii ---
 if first_image_path and first_image_path != "path_not_found":
@@ -39,7 +50,6 @@ if first_image_path and first_image_path != "path_not_found":
         original_width, original_height = pil_image.size
         ratio = min(MAX_WIDTH / original_width, MAX_HEIGHT / original_height)
         
-        # Redimensionăm imaginea
         new_width = original_width
         new_height = original_height
         if ratio < 1:
@@ -49,18 +59,15 @@ if first_image_path and first_image_path != "path_not_found":
 
         photo_image = ImageTk.PhotoImage(pil_image)
 
-        # --- MODIFICAT: Folosim Canvas în loc de Label ---
+        # --- Folosim Canvas în loc de Label (rămâne la fel) ---
         canvas = tk.Canvas(root, width=new_width, height=new_height)
         canvas.pack(padx=10, pady=10)
         
-        # Desenăm imaginea pe canvas
         canvas.create_image(0, 0, anchor=tk.NW, image=photo_image)
         
-        # Păstrăm o referință la imagine pentru a nu fi ștearsă de garbage collector
         canvas.image = photo_image 
 
-        # --- NOU: Legăm evenimentul de click de funcția noastră ---
-        # '<Button-1>' reprezintă click-ul stânga al mouse-ului.
+        # --- Legăm evenimentul de click de funcția noastră (rămâne la fel) ---
         canvas.bind("<Button-1>", on_image_click)
         
     except Exception as e:
